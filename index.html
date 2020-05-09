@@ -1,0 +1,130 @@
+<!DOCTYPE html><html lang="en"><head>
+    <script src="tfjs-core"></script>
+    <script src="tfjs-converter"></script>
+    <script src="handpose"></script>
+    <script src="p5.js"></script>
+    <script src="p5.sound.min.js"></script>
+    <script>
+      var video;
+      var myCanvas;
+      var ctx;
+      var modelH;
+      var pred_interval;
+      var preds;
+      var indexFingerX = 300;
+      var indexFingerY = 290;
+      var centreDist = 0;
+      var myVector;
+      var status = 0;
+
+      async function init() {
+          video = document.getElementById('video_frame');
+          if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+              // Not adding `{ audio: true }` since we only want video now
+              navigator.mediaDevices.getUserMedia({ video: true, width: 530, height: 400 }).then(function(stream) {
+                  video.srcObject = stream;
+                  video.play();
+              });
+          }
+          // Load the MediaPipe handpose modelH.
+          modelH = await handpose.load();
+          var region = new Path2D();
+        
+          myCanvas = document.getElementById("dirVector");
+          ctx = myCanvas.getContext("2d");
+          
+          ctx.beginPath();
+          ctx.arc(260, 200, 30, 0, 2 * Math.PI);
+          ctx.strokeStyle = "green";
+          ctx.stroke();
+        
+          ctx.beginPath();
+          ctx.arc(260, 200, 160, 0, 2 * Math.PI);
+          ctx.strokeStyle = "red";
+          ctx.stroke();
+          region.moveTo(260, 200);
+        
+          myVector = createVector(0, 0);
+      }
+
+      async function main() {
+        const predictions = await modelH.estimateHands(video);
+        return predictions
+      }
+
+      function get_predictions() {
+        predictions = main();
+        var region = new Path2D();
+        region.moveTo(260, 200);
+        predictions.then(function(val){
+            if (val.length > 0){
+            preds = val[0];
+            indexFingerX = preds["landmarks"][5][0]
+            indexFingerY = preds["landmarks"][5][1]
+            centreDist = sqrt((-indexFingerX+300)*(-indexFingerX+300)+(-indexFingerY+290)*(-indexFingerY+290));
+              
+            myVector.x = -indexFingerX+300;
+            myVector.y = -indexFingerY+290;
+            if(myVector.mag()>160) myVector.setMag(160);
+            // document.getElementById("show").innerHTML = centreDist;
+            ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
+            ctx.fillStyle = "#FF0000";
+              
+            ctx.beginPath();
+            ctx.arc(260, 200, 30, 0, 2 * Math.PI);
+            ctx.strokeStyle = "green";
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(260, 200, 160, 0, 2 * Math.PI);
+            ctx.strokeStyle = "red";
+            ctx.stroke();
+              
+            region.lineTo(-myVector.x+260, -myVector.y+200);
+            ctx.strokeStyle = "black";
+            ctx.stroke(region);
+            }
+          });
+      }
+
+      function start_pred() {
+          pred_interval = window.setInterval(() => get_predictions(), 1000/10)
+          document.getElementById("button").innerHTML = "Pause";
+          status = 1;
+      }
+
+      function stop_pred() {
+          document.getElementById("button").innerHTML = "Resume";
+          status = 0;
+      }
+
+      function begin_game(){
+        if (status == 0){
+          start_pred();
+        }
+        else{
+          stop_pred();
+        }
+      }
+
+    </script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8">
+
+  </head>
+  <body onload="init()">
+    <div class="clearfix" id="mainparent">
+      <script src="sketch.js"></script>
+      <script src="Car.js"></script>
+      <script src="Food.js"></script>
+      <script src="Enemy.js"></script>
+      <div class="videoPart">
+        <video id="video_frame" width="530" height="400" autoplay="" playsinline=""></video>
+        <div id="button" onclick="begin_game()">Start</div>
+        <div id="show" width="530">The tip of your index finger determines the direction and speed.</div>
+        <canvas id="dirVector" width="530" height="400"> </canvas>
+      </div>
+    </div>
+  
+
+</body></html>

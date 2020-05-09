@@ -1,0 +1,50 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+canvas {
+  display: block;
+}
+
+div {
+  padding: 5px;
+}
+.videoPart {
+  float: right;
+}
+#video_frame {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+}
+#button {
+  background-color: #555555;
+  border: none;
+  color: white;
+  padding: 10px 17px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 36px;
+  border-radius: 25px;
+}
+#show {
+  text-align: center;
+  font-size: 20px;
+}
+#button:hover {
+  cursor: pointer;
+}
+#dirVector{
+  margin-top: 10px;  
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+}
+#direction {
+  border: None;
+  text-align: center;
+}
+#warning {
+  border: None;
+  text-align: center;
+}
